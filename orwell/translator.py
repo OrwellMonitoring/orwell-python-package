@@ -1,8 +1,8 @@
 from flask import Flask, request, make_response
 from kafka import KafkaConsumer
 from redis import Redis
-
-from os import environ
+from time import sleep, time
+import requests
 
 from .helper import Helper
 
@@ -34,14 +34,28 @@ class Translator:
 
     app.run(host=host, port=port, debug=debug)
 
-  def prod (self, redis_password='root', kafka_host='localhost', kafka_port=9093, kafka_topic='telegraf'):
-    def consume (metrics: list):
-      conn = Redis(password=redis_password)
-      conn.rpush("METRICS", metrics)
-      conn.close()
+  def redis_consume (self, metrics: list, redis_password: str):
+    instance = metrics[0].properties['instance']
 
-    consumer = KafkaConsumer(kafka_topic, bootstrap_servers=[ '%s:%i' % (kafka_host, kafka_port) ], value_deserializer=lambda m: Helper.concatenate_metrics(list(map(self._translation_function, m.decode('ascii').split('\n'))) if m else []))
+    conn = Redis(password=redis_password)
+    conn.rpush(instance, metrics)
+    conn.close()
+
+  def prod (self, redis_password='root', kafka_host='localhost', kafka_port=9093, kafka_topic='general'):
+    consumer = KafkaConsumer(kafka_topic, bootstrap_servers=[ '%s:%i' % (kafka_host, kafka_port) ], value_deserializer=lambda m: list(map(self._translation_function, m.decode('ascii').split('\n')) if m else []))
     
     for msg in consumer: 
       if msg.value: 
-        consume(msg.value)
+        self.redis_consume(msg.value, redis_password)
+
+  def pull (self, endpoint: str, interval: int = 15, redis_password: str = 'root'):
+    while True:
+      ts = time()
+
+      data = requests.get(endpoint).text
+      metrics = self._translation_function(data)
+
+      self.redis_consume(metrics, redis_password)
+
+      time_left = interval - (time()-ts)
+      if time_left > 0: sleep(time_left)
