@@ -5,11 +5,13 @@ from .consts import TIMESTAMP_LENGTH
 
 class Metric:
 
-  def __init__ (self, title: str, value: str, properties: dict = {}, timestamp: float = None):
+  def __init__ (self, title: str, value: str, properties: dict = None, timestamp: float = None, instance: str = ''):
     self._title = title
     self._value = value
-    self._properties = properties
+    self._properties = properties if properties is not None else {}
     self._timestamp = time() if timestamp is None else timestamp
+    
+    if instance is not None: self._properties['instance'] = instance
 
     self._str_cache = None
 
