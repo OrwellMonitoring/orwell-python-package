@@ -63,6 +63,9 @@ This is the most important mode as it allows to read messages from Kafka and wri
   
 **Environment Variables**
 
+```REDIS_HOST```
+**Default** "localhost"
+
 ```REDIS_PASSWORD```
 **Default** "root"
 
@@ -73,4 +76,20 @@ This is the most important mode as it allows to read messages from Kafka and wri
 **Default** 9093
 
 ```KAFKA_TOPIC```
-**Default** "telegraf"
+**Default** "general"
+
+### Pull Mode
+```python main.py pull```
+
+This mode allows gathering data from a custom endpoint.
+  
+  
+**Environment Variables**
+
+```PULL_ENDPOINT```
+
+```PULL_INTERVAL```
+**Default** "localhost"
+
+```REDIS_PASSWORD```
+**Default** "root"

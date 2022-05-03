@@ -39,14 +39,16 @@ class Runner:
     elif argv[1] == Runner.PROD_TEXT:
       args = {}
 
+      redis_host = environ.get('REDIS_HOST')
       redis_password = environ.get('REDIS_PASSWORD')
       kafka_host = environ.get('KAFKA_HOST')
       kafka_port = environ.get('KAFKA_PORT')
       kafka_topic = environ.get('KAFKA_TOPIC')
 
+      if redis_host is not None: args['redis_host'] = redis_host
       if redis_password is not None: args['redis_password'] = redis_password
       if kafka_host is not None: args['kafka_host'] = kafka_host
-      if kafka_port is not None: args['kafka_port'] = kafka_port
+      if kafka_port is not None: args['kafka_port'] = int(kafka_port)
       if kafka_topic is not None: args['kafka_topic'] = kafka_topic
 
       self._translator.prod(**args)
@@ -56,10 +58,12 @@ class Runner:
 
       pull_endpoint = environ.get('PULL_ENDPOINT')
       pull_interval = environ.get('PULL_INTERVAL')
+      redis_host = environ.get('REDIS_HOST')
       redis_password = environ.get('REDIS_PASSWORD')
 
       if pull_endpoint is not None: args['endpoint'] = pull_endpoint
       if pull_interval is not None: args['interval'] = int(pull_interval)
+      if redis_host is not None: args['redis_host'] = redis_host
       if redis_password is not None: args['redis_password'] = redis_password
 
       self._translator.pull(**args)

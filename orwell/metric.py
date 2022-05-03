@@ -1,6 +1,6 @@
 from time import time
 
-from consts import TIMESTAMP_LENGTH
+from .consts import TIMESTAMP_LENGTH
 
 
 class Metric:

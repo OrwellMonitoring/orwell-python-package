@@ -34,28 +34,29 @@ class Translator:
 
     app.run(host=host, port=port, debug=debug)
 
-  def redis_consume (self, metrics: list, redis_password: str):
+  def redis_consume (self, metrics: list, redis_host: str, redis_password: str):
+    metrics = Helper.concatenate_metrics_arrays(metrics)
     instance = metrics[0].properties['instance']
 
-    conn = Redis(password=redis_password)
+    conn = Redis(host=redis_host, password=redis_password)
     conn.rpush(instance, metrics)
     conn.close()
 
-  def prod (self, redis_password='root', kafka_host='localhost', kafka_port=9093, kafka_topic='general'):
+  def prod (self, redis_host='localhost', redis_password='root', kafka_host='localhost', kafka_port=9093, kafka_topic='general'):
     consumer = KafkaConsumer(kafka_topic, bootstrap_servers=[ '%s:%i' % (kafka_host, kafka_port) ], value_deserializer=lambda m: list(map(self._translation_function, m.decode('ascii').split('\n')) if m else []))
     
     for msg in consumer: 
       if msg.value: 
-        self.redis_consume(msg.value, redis_password)
+        self.redis_consume(msg.value, redis_host, redis_password)
 
-  def pull (self, endpoint: str, interval: int = 15, redis_password: str = 'root'):
+  def pull (self, endpoint: str, interval: int = 15, redis_host='localhost', redis_password: str = 'root'):
     while True:
       ts = time()
 
       data = requests.get(endpoint).text
       metrics = self._translation_function(data)
 
-      self.redis_consume(metrics, redis_password)
+      self.redis_consume(metrics, redis_host, redis_password)
 
       time_left = interval - (time()-ts)
       if time_left > 0: sleep(time_left)
