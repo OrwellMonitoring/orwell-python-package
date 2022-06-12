@@ -10,7 +10,7 @@ README = (HERE / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="orwell_translators",
-    version="1.1.3",
+    version="1.1.4",
     description="Create translators for the Orwell platform",
     long_description=README,
     long_description_content_type="text/markdown",

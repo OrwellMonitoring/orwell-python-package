@@ -35,15 +35,14 @@ class Translator:
     app.run(host=host, port=port, debug=debug)
 
   def redis_consume (self, metrics: list, redis_host: str, redis_password: str):
-    metrics = Helper.concatenate_metrics_arrays(metrics)
     instance = metrics[0].properties['instance']
 
     conn = Redis(host=redis_host, password=redis_password)
-    conn.rpush(instance, metrics)
+    conn.rpush(instance, Helper.concatenate_metrics(metrics))
     conn.close()
 
   def prod (self, redis_host='localhost', redis_password='root', kafka_host='localhost', kafka_port=9093, kafka_topic='general'):
-    consumer = KafkaConsumer(kafka_topic, bootstrap_servers=[ '%s:%i' % (kafka_host, kafka_port) ], value_deserializer=lambda m: list(map(self._translation_function, m.decode('ascii').split('\n')) if m else []))
+    consumer = KafkaConsumer(kafka_topic, bootstrap_servers=[ '%s:%i' % (kafka_host, kafka_port) ], value_deserializer=lambda m: Helper.concatenate_metrics_arrays(list(map(self._translation_function, m.decode('ascii').split('\n'))) if m else []))
     
     for msg in consumer: 
       if msg.value: 
